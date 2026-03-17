@@ -56,6 +56,24 @@ function loadExternalThenInline(container: HTMLElement) {
   });
 }
 
+// ─── TOC config per article ───────────────────────────────────────────────────
+
+interface TocItem {
+  id: string;
+  label: string;
+  num: string;
+}
+
+const TOC_MAP: Record<string, TocItem[]> = {
+  "java-memory-oop": [
+    { id: "s1", num: "01", label: "The Analogy That Changes Everything" },
+    { id: "s2", num: "02", label: "Where Everything Lives in RAM" },
+    { id: "s3", num: "03", label: "Blueprint Defaults & Object Creation" },
+    { id: "s4", num: "04", label: "The Constructor — Overwriting Defaults" },
+    { id: "s5", num: "05", label: "Static — Where the Analogy Breaks Down" },
+  ],
+};
+
 // ─── Animation variants ───────────────────────────────────────────────────────
 
 const heroVariants: Variants = {
@@ -98,6 +116,7 @@ const ArticlePage = () => {
   const { id } = useParams<{ id: string }>();
   const article = getArticleById(id || "");
   const contentRef = useRef<HTMLDivElement>(null);
+  const tocItems = id ? (TOC_MAP[id] ?? []) : [];
 
   // ── Always scroll to top when the article changes ──
   useEffect(() => {
@@ -144,7 +163,7 @@ const ArticlePage = () => {
       >
         <Header />
 
-        {/* ── Dark hero banner — staggered children ── */}
+        {/* ── Dark hero banner ── */}
         <motion.div
           style={{ background: "#1a1814", color: "#faf8f4" }}
           variants={heroVariants}
@@ -251,18 +270,46 @@ const ArticlePage = () => {
         {/* Reading progress bar */}
         <ReadingProgress />
 
-        {/* ── Article body ── */}
+        {/* ── Article body + TOC sidebar ── */}
         <motion.main
           className="flex-1"
           variants={contentVariants}
           initial="hidden"
           animate="visible"
         >
+          {/* Outer shell: centres content and positions TOC */}
           <div
-            ref={contentRef}
-            className="article-prose max-w-[720px] mx-auto px-6 py-16"
-            dangerouslySetInnerHTML={{ __html: article.content }}
-          />
+            style={{
+              maxWidth: "1100px",
+              margin: "0 auto",
+              padding: "64px 24px 0",
+              display: "grid",
+              gridTemplateColumns: tocItems.length > 0 ? "1fr 220px" : "720px",
+              gridTemplateAreas: tocItems.length > 0 ? '"article toc"' : '"article"',
+              justifyContent: "center",
+              gap: "52px",
+              alignItems: "start",
+            }}
+          >
+            {/* Article HTML */}
+            <div
+              ref={contentRef}
+              style={{ gridArea: "article", minWidth: 0 }}
+              dangerouslySetInnerHTML={{ __html: article.content }}
+            />
+
+            {/* TOC sidebar — only rendered when TOC items exist */}
+            {tocItems.length > 0 && (
+              <TocSidebar
+                items={tocItems}
+                meta={{
+                  category: article.category,
+                  readTime: article.readTime,
+                  date: article.date,
+                }}
+              />
+            )}
+          </div>
         </motion.main>
 
         {/* Back link footer */}
@@ -292,6 +339,168 @@ const ArticlePage = () => {
         <Footer />
       </motion.div>
     </AnimatePresence>
+  );
+};
+
+// ─── TOC Sidebar ─────────────────────────────────────────────────────────────
+
+const TocSidebar = ({
+  items,
+  meta,
+}: {
+  items: TocItem[];
+  meta: { category: string; readTime: string; date: string };
+}) => {
+  const [activeId, setActiveId] = useState<string>("");
+
+  useEffect(() => {
+    const handleScroll = () => {
+      let current = "";
+      items.forEach(({ id }) => {
+        const el = document.getElementById(id);
+        if (el && window.scrollY >= el.offsetTop - 120) {
+          current = id;
+        }
+      });
+      setActiveId(current);
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll(); // run once on mount
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [items]);
+
+  const handleClick = (
+    e: React.MouseEvent<HTMLAnchorElement>,
+    id: string
+  ) => {
+    e.preventDefault();
+    const el = document.getElementById(id);
+    if (el) {
+      const top = el.getBoundingClientRect().top + window.scrollY - 90;
+      window.scrollTo({ top, behavior: "smooth" });
+    }
+  };
+
+  return (
+    <aside
+      style={{
+        gridArea: "toc",
+        position: "sticky",
+        top: "90px",
+        alignSelf: "start",
+      }}
+    >
+      {/* TOC box */}
+      <div
+        style={{
+          background: "#ffffff",
+          border: "1px solid #e2ddd6",
+          borderRadius: "14px",
+          padding: "20px 18px",
+          boxShadow: "0 2px 24px rgba(26,24,20,0.07)",
+        }}
+      >
+        {/* Heading */}
+        <div
+          style={{
+            fontFamily: "'JetBrains Mono', monospace",
+            fontSize: "9px",
+            letterSpacing: "0.22em",
+            textTransform: "uppercase" as const,
+            color: "#c0392b",
+            marginBottom: "13px",
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+          }}
+        >
+          <span
+            style={{
+              width: "16px",
+              height: "1px",
+              background: "#c0392b",
+              flexShrink: 0,
+              display: "inline-block",
+            }}
+          />
+          Contents
+        </div>
+
+        {/* Links */}
+        <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+          {items.map(({ id, num, label }) => {
+            const isActive = activeId === id;
+            return (
+              <li key={id} style={{ marginBottom: "1px" }}>
+                <a
+                  href={`#${id}`}
+                  onClick={(e) => handleClick(e, id)}
+                  style={{
+                    display: "flex",
+                    alignItems: "flex-start",
+                    gap: "8px",
+                    padding: "5px 8px 5px 10px",
+                    borderLeft: `2px solid ${isActive ? "#c0392b" : "transparent"}`,
+                    borderRadius: "0 5px 5px 0",
+                    fontFamily: "'Source Serif 4', serif",
+                    fontSize: "12.5px",
+                    fontWeight: isActive ? 400 : 300,
+                    color: isActive ? "#c0392b" : "#6b6358",
+                    textDecoration: "none",
+                    lineHeight: 1.45,
+                    background: isActive
+                      ? "rgba(192,57,43,0.05)"
+                      : "transparent",
+                    transition: "color 0.2s, border-color 0.2s, background 0.2s",
+                  }}
+                >
+                  <span
+                    style={{
+                      fontFamily: "'JetBrains Mono', monospace",
+                      fontSize: "9px",
+                      color: "#9c9489",
+                      flexShrink: 0,
+                      marginTop: "3px",
+                    }}
+                  >
+                    {num}
+                  </span>
+                  {label}
+                </a>
+              </li>
+            );
+          })}
+        </ul>
+
+        {/* Meta info */}
+        <div
+          style={{
+            marginTop: "16px",
+            padding: "11px 12px",
+            background: "rgba(192,57,43,0.05)",
+            border: "1px solid rgba(192,57,43,0.16)",
+            borderRadius: "7px",
+          }}
+        >
+          <p
+            style={{
+              fontFamily: "'JetBrains Mono', monospace",
+              fontSize: "10px",
+              color: "#c0392b",
+              lineHeight: 1.7,
+              margin: 0,
+            }}
+          >
+            {meta.category}
+            <br />
+            {meta.readTime}
+            <br />
+            {meta.date}
+          </p>
+        </div>
+      </div>
+    </aside>
   );
 };
 

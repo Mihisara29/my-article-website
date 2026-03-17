@@ -87,6 +87,7 @@ const javaMemoryArticle: Article = {
     padding-bottom: 12px;
     border-bottom: 2px solid var(--rule);
     line-height: 1.3;
+    scroll-margin-top: 80px;
   }
   h2 .num {
     font-family: 'JetBrains Mono', monospace;
@@ -266,7 +267,7 @@ const javaMemoryArticle: Article = {
 
 <div id="progress"></div>
 
-<div style="max-width:740px;margin:0 auto;padding:64px 24px 120px;">
+<div style="max-width:740px;margin:0 auto;padding:0 24px 120px;">
 
   <p class="drop-cap">Most people learn Object-Oriented Programming the textbook way — memorizing lines like "a class is a blueprint" and "an object is an instance of a class." These definitions are correct. But they hide something far more interesting: what is <em>actually happening inside your computer's memory</em> when you type those words and hit run?</p>
 
@@ -276,7 +277,7 @@ const javaMemoryArticle: Article = {
     <p>Understanding memory does not make you a slower programmer. It makes you a precise one — someone who knows <em>why</em> things work, not just that they do.</p>
   </blockquote>
 
-  <h2><span class="num">01 &mdash;</span> The Analogy That Changes Everything</h2>
+  <h2 id="s1"><span class="num">01 &mdash;</span> The Analogy That Changes Everything</h2>
 
   <p>Before we touch memory regions, let us build the mental model with something you already know: basic variables.</p>
 
@@ -323,7 +324,7 @@ const javaMemoryArticle: Article = {
     <div class="caption">Fig. 1 — The type/value analogy mapped to class/object</div>
   </div>
 
-  <h2><span class="num">02 &mdash;</span> Where Everything Lives in RAM</h2>
+  <h2 id="s2"><span class="num">02 &mdash;</span> Where Everything Lives in RAM</h2>
 
   <p>When your Java program runs, the JVM divides memory into distinct regions. Two of them are critical to understanding OOP.</p>
 
@@ -392,7 +393,7 @@ const javaMemoryArticle: Article = {
     <p>The variable <code>myCar</code> itself lives on the <strong>Stack</strong>. It does not hold the object — it holds the <em>address</em> of the object. This is why in Java, when you pass an object to a method, you are passing a copy of the reference (the address), not a copy of the object itself.</p>
   </div>
 
-  <h2><span class="num">03 &mdash;</span> Blueprint Defaults and What Happens at Object Creation</h2>
+  <h2 id="s3"><span class="num">03 &mdash;</span> Blueprint Defaults and What Happens at Object Creation</h2>
 
   <p>Consider this class:</p>
 
@@ -413,7 +414,7 @@ const javaMemoryArticle: Article = {
     <li>Your variable (e.g. <code>myCar</code>) stores that address</li>
   </ol>
 
-  <h2><span class="num">04 &mdash;</span> The Constructor — Overwriting the Blueprint Defaults</h2>
+  <h2 id="s4"><span class="num">04 &mdash;</span> The Constructor — Overwriting the Blueprint Defaults</h2>
 
   <p>Now let us add a constructor and watch what changes:</p>
 
@@ -475,7 +476,7 @@ const javaMemoryArticle: Article = {
     <p>If a constructor sets a field, the inline default value for that field is practically useless — it gets applied for a fraction of a millisecond before the constructor overwrites it. Inline defaults only matter when there is <em>no constructor</em>, or when the constructor does not touch that particular field.</p>
   </div>
 
-  <h2><span class="num">05 &mdash;</span> Static — Where the Analogy Breaks Down</h2>
+  <h2 id="s5"><span class="num">05 &mdash;</span> Static — Where the Analogy Breaks Down</h2>
 
   <p>Recall our analogy: just as <code>int</code> needs a value to be useful, a class needs an object. But now consider this:</p>
 
