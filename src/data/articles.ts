@@ -54,20 +54,24 @@ const javaMemoryArticle: Article = {
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html { scroll-behavior: smooth; }
+
+  /* ── Base typography: fluid font size ── */
   body {
     background: var(--paper);
     color: var(--ink);
     font-family: 'Source Serif 4', Georgia, serif;
-    font-size: 19px;
+    font-size: clamp(16px, 2.5vw, 19px);
     line-height: 1.85;
     font-weight: 300;
   }
+
   #progress {
     position: fixed; top: 0; left: 0; height: 3px;
     background: var(--accent);
     width: 0%; z-index: 100;
     transition: width 0.1s linear;
   }
+
   .drop-cap::first-letter {
     font-family: 'Playfair Display', serif;
     font-size: 4.8em;
@@ -77,21 +81,24 @@ const javaMemoryArticle: Article = {
     margin: 0.06em 0.1em 0 0;
     color: var(--accent);
   }
+
   p { margin-bottom: 1.6em; color: var(--ink-mid); }
+
+  /* ── Headings: clamp prevents overflow on narrow screens ── */
   h2 {
     font-family: 'Playfair Display', serif;
-    font-size: 30px;
+    font-size: clamp(21px, 4vw, 30px);
     font-weight: 700;
     color: var(--ink);
-    margin: 64px 0 20px;
+    margin: clamp(36px, 6vw, 64px) 0 16px;
     padding-bottom: 12px;
     border-bottom: 2px solid var(--rule);
     line-height: 1.3;
-    scroll-margin-top: 80px;
+    scroll-margin-top: 160px;
   }
   h2 .num {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 13px;
+    font-size: 12px;
     color: var(--accent);
     display: block;
     margin-bottom: 4px;
@@ -99,40 +106,45 @@ const javaMemoryArticle: Article = {
   }
   h3 {
     font-family: 'Playfair Display', serif;
-    font-size: 22px;
+    font-size: clamp(18px, 3vw, 22px);
     font-weight: 400;
     font-style: italic;
     color: var(--ink);
-    margin: 36px 0 14px;
+    margin: 28px 0 12px;
   }
+
+  /* ── Blockquote: tighter padding on mobile ── */
   blockquote {
     border-left: 4px solid var(--accent);
-    margin: 40px 0;
-    padding: 20px 32px;
+    margin: 32px 0;
+    padding: 16px clamp(16px, 4vw, 32px);
     background: var(--paper-warm);
     border-radius: 0 8px 8px 0;
   }
   blockquote p {
     font-family: 'Playfair Display', serif;
-    font-size: 22px;
+    font-size: clamp(17px, 3vw, 22px);
     font-style: italic;
     color: var(--ink);
     margin: 0;
     line-height: 1.5;
   }
+
+  /* ── Code blocks: horizontal scroll with momentum on iOS ── */
   pre {
     background: #1e1e2e !important;
     border-radius: 10px;
-    padding: 28px 32px;
-    margin: 28px 0;
+    padding: clamp(16px, 3vw, 28px) clamp(16px, 4vw, 32px);
+    margin: 24px 0;
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
     box-shadow: var(--shadow);
     position: relative;
     opacity: 1 !important;
   }
   pre::before {
     content: attr(data-lang);
-    position: absolute; top: 10px; right: 16px;
+    position: absolute; top: 10px; right: 14px;
     font-family: 'JetBrains Mono', monospace;
     font-size: 10px;
     letter-spacing: 0.12em;
@@ -141,13 +153,14 @@ const javaMemoryArticle: Article = {
   }
   pre code {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 14.5px;
+    font-size: clamp(12px, 2vw, 14.5px);
     line-height: 1.75;
     color: #cdd6f4 !important;
     opacity: 1 !important;
     background: none !important;
     border: none !important;
     padding: 0 !important;
+    white-space: pre; /* keep indentation; scroll instead of wrap */
   }
   .kw   { color: #f38ba8 !important; opacity: 1 !important; }
   .ty   { color: #f9e2af !important; opacity: 1 !important; }
@@ -155,22 +168,28 @@ const javaMemoryArticle: Article = {
   .cm   { color: #6c7086 !important; font-style: italic; opacity: 1 !important; }
   .fn   { color: #89b4fa !important; opacity: 1 !important; }
   .num-c { color: #fab387 !important; opacity: 1 !important; }
+
+  /* ── Inline code ── */
   p code, li code {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 14px;
+    font-size: 13px;
     background: var(--code-bg);
     padding: 2px 7px;
     border-radius: 4px;
     color: var(--accent);
     opacity: 1 !important;
+    word-break: break-word; /* prevent long tokens overflowing on mobile */
   }
+
+  /* ── Diagram cards: SVGs scale with container ── */
   .diagram-card {
     background: var(--paper-card);
     border: 1px solid var(--rule);
     border-radius: 16px;
-    padding: 32px 28px 24px;
-    margin: 40px 0;
+    padding: clamp(16px, 4vw, 32px) clamp(12px, 3vw, 28px) clamp(14px, 3vw, 24px);
+    margin: 32px 0;
     box-shadow: var(--shadow);
+    overflow: hidden; /* belt-and-braces clip */
   }
   .diagram-card .caption {
     font-family: 'JetBrains Mono', monospace;
@@ -179,95 +198,138 @@ const javaMemoryArticle: Article = {
     text-transform: uppercase;
     color: var(--ink-faint);
     text-align: center;
-    margin-top: 16px;
-    padding-top: 16px;
+    margin-top: 14px;
+    padding-top: 14px;
     border-top: 1px solid var(--rule);
   }
+  /* Make SVGs fluid — viewBox keeps them proportional */
+  .diagram-card svg {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
   .diagram-card svg text { font-family: 'Source Serif 4', serif; }
+
+  /* ── Info boxes ── */
   .info-box {
     border: 1px solid;
     border-radius: 10px;
-    padding: 20px 24px;
-    margin: 28px 0;
+    padding: clamp(14px, 3vw, 20px) clamp(14px, 3vw, 24px);
+    margin: 24px 0;
     display: flex;
-    gap: 16px;
+    gap: 14px;
     align-items: flex-start;
   }
   .info-box.tip  { border-color: rgba(22,160,133,0.3); background: rgba(22,160,133,0.05); }
   .info-box.warn { border-color: rgba(192,57,43,0.25); background: rgba(192,57,43,0.04); }
-  .info-box .icon { font-size: 20px; flex-shrink: 0; margin-top: 2px; font-family: 'JetBrains Mono', monospace; font-size: 16px; font-weight: 500; }
+  .info-box .icon { flex-shrink: 0; margin-top: 2px; font-family: 'JetBrains Mono', monospace; font-size: 16px; font-weight: 500; }
   .info-box.tip  .icon { color: var(--accent-teal); }
   .info-box.warn .icon { color: var(--accent); }
-  .info-box p { margin: 0; font-size: 16px; color: var(--ink-mid); }
-  .table-wrap { overflow-x: auto; margin: 28px 0; }
-  table { width: 100%; border-collapse: collapse; font-size: 16px; }
+  .info-box p { margin: 0; font-size: clamp(14px, 2vw, 16px); color: var(--ink-mid); }
+
+  /* ── Table: scrollable on narrow screens ── */
+  .table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: 24px 0;
+    border-radius: 10px;
+    border: 1px solid var(--rule);
+  }
+  table { width: 100%; border-collapse: collapse; font-size: clamp(12px, 2vw, 16px); min-width: 420px; }
   th {
     background: var(--ink);
     color: var(--paper);
     font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
+    font-size: clamp(10px, 1.5vw, 12px);
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    padding: 12px 18px;
+    padding: 10px 14px;
     text-align: left;
+    white-space: nowrap;
   }
-  td { padding: 12px 18px; border-bottom: 1px solid var(--rule); color: var(--ink-mid); }
+  td { padding: 10px 14px; border-bottom: 1px solid var(--rule); color: var(--ink-mid); }
+  tr:last-child td { border-bottom: none; }
   tr:nth-child(even) td { background: var(--paper-warm); }
+
+  /* ── Stepper ── */
   .stepper {
     background: var(--paper-card);
     border: 1px solid var(--rule);
     border-radius: 16px;
     overflow: hidden;
-    margin: 40px 0;
+    margin: 32px 0;
     box-shadow: var(--shadow);
   }
   .stepper-header {
     background: var(--ink);
     color: var(--paper);
-    padding: 18px 28px;
+    padding: 14px clamp(14px, 3vw, 28px);
     display: flex;
     align-items: center;
     justify-content: space-between;
     font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
+    font-size: 11px;
     letter-spacing: 0.08em;
+    flex-wrap: wrap;
+    gap: 8px;
   }
   .step-dots { display: flex; gap: 8px; }
   .step-dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(250,248,244,0.2); cursor: pointer; transition: background 0.2s; }
   .step-dot.active { background: var(--accent-warm); }
-  .stepper-body { padding: 32px 28px; }
+  .stepper-body { padding: clamp(18px, 4vw, 32px) clamp(14px, 4vw, 28px); }
   .step-panel { display: none; animation: fadeIn 0.3s ease; }
   .step-panel.active { display: block; }
   @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
-  .step-title { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; color: var(--ink); margin-bottom: 12px; }
-  .step-title .step-num { display: inline-block; background: var(--accent); color: white; font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 2px 8px; border-radius: 3px; margin-right: 10px; vertical-align: middle; }
-  .stepper-nav { padding: 16px 28px; border-top: 1px solid var(--rule); display: flex; gap: 10px; }
-  .stepper-nav button { padding: 8px 20px; border-radius: 6px; border: 1px solid var(--rule); background: var(--paper-warm); color: var(--ink); font-family: 'JetBrains Mono', monospace; font-size: 12px; cursor: pointer; transition: all 0.15s; }
+  .step-title { font-family: 'Playfair Display', serif; font-size: clamp(16px, 3vw, 20px); font-weight: 700; color: var(--ink); margin-bottom: 10px; }
+  .step-title .step-num { display: inline-block; background: var(--accent); color: white; font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 2px 8px; border-radius: 3px; margin-right: 8px; vertical-align: middle; }
+  .stepper-nav { padding: 12px clamp(14px, 3vw, 28px); border-top: 1px solid var(--rule); display: flex; gap: 10px; }
+  .stepper-nav button { padding: 8px 18px; border-radius: 6px; border: 1px solid var(--rule); background: var(--paper-warm); color: var(--ink); font-family: 'JetBrains Mono', monospace; font-size: 12px; cursor: pointer; transition: all 0.15s; }
   .stepper-nav button:hover { background: var(--ink); color: var(--paper); }
   .stepper-nav button:disabled { opacity: 0.35; cursor: default; }
   .stepper-nav button:disabled:hover { background: var(--paper-warm); color: var(--ink); }
-  .takeaways { background: var(--ink); color: var(--paper); border-radius: 16px; padding: 40px 40px 36px; margin: 56px 0; }
-  .takeaways h2 { color: var(--paper); border-bottom-color: rgba(250,248,244,0.15); margin-top: 0; font-size: 26px; }
+
+  /* ── Takeaways block ── */
+  .takeaways { background: var(--ink); color: var(--paper); border-radius: 16px; padding: clamp(24px, 5vw, 40px); margin: clamp(36px, 6vw, 56px) 0; }
+  .takeaways h2 { color: var(--paper); border-bottom-color: rgba(250,248,244,0.15); margin-top: 0; font-size: clamp(18px, 4vw, 26px); }
   .takeaways ul { list-style: none; padding: 0; }
-  .takeaways li { padding: 10px 0 10px 28px; position: relative; border-bottom: 1px solid rgba(250,248,244,0.08); font-size: 17px; color: rgba(250,248,244,0.8); line-height: 1.65; }
+  .takeaways li { padding: 10px 0 10px 26px; position: relative; border-bottom: 1px solid rgba(250,248,244,0.08); font-size: clamp(14px, 2.2vw, 17px); color: rgba(250,248,244,0.8); line-height: 1.65; }
   .takeaways li::before { content: '\\2192'; position: absolute; left: 0; color: var(--accent-warm); font-family: 'JetBrains Mono', monospace; }
   .takeaways li:last-child { border-bottom: none; }
-  .divider { text-align: center; margin: 48px 0; color: var(--ink-faint); letter-spacing: 0.3em; font-size: 13px; }
-  .constructor-viz { padding: 24px; background: var(--paper-warm); border-radius: 12px; margin-top: 12px; }
-  .field-row { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 8px; margin: 8px 0; border: 1px solid transparent; transition: all 0.4s ease; font-family: 'JetBrains Mono', monospace; font-size: 14px; }
+
+  .divider { text-align: center; margin: 40px 0; color: var(--ink-faint); letter-spacing: 0.3em; font-size: 13px; }
+
+  /* ── Constructor visualiser ── */
+  .constructor-viz { padding: clamp(14px, 3vw, 24px); background: var(--paper-warm); border-radius: 12px; margin-top: 12px; }
+  .field-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    margin: 6px 0;
+    border: 1px solid transparent;
+    transition: all 0.4s ease;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: clamp(11px, 1.8vw, 14px);
+    flex-wrap: wrap; /* let it reflow on tiny screens */
+  }
   .field-row.blueprint  { background: #edf4fb; border-color: #b3cfe8; color: #1a5276; }
   .field-row.overwritten { background: #fdf0ec; border-color: #f0a898; color: #922b21; }
-  .field-label { font-weight: 500; min-width: 60px; }
-  .field-source { font-size: 11px; padding: 2px 8px; border-radius: 3px; margin-left: auto; }
+  .field-label { font-weight: 500; min-width: 50px; }
+  .field-source { font-size: 10px; padding: 2px 7px; border-radius: 3px; margin-left: auto; white-space: nowrap; }
   .blueprint .field-source  { background: #b3cfe8; color: #1a5276; }
   .overwritten .field-source { background: #f0a898; color: #922b21; }
+
+  /* ── Ordered list ── */
+  ol { margin: 0 0 1.6em 1.4em; color: var(--ink-mid); }
+  ol li { margin-bottom: 10px; font-size: clamp(15px, 2.2vw, 18px); }
 </style>
 </head>
 <body>
 
 <div id="progress"></div>
 
-<div style="max-width:740px;margin:0 auto;padding:0 24px 120px;">
+<div style="max-width:740px;margin:0 auto;padding:0 0 100px;">
 
   <p class="drop-cap">Most people learn Object-Oriented Programming the textbook way — memorizing lines like "a class is a blueprint" and "an object is an instance of a class." These definitions are correct. But they hide something far more interesting: what is <em>actually happening inside your computer's memory</em> when you type those words and hit run?</p>
 
@@ -290,7 +352,7 @@ const javaMemoryArticle: Article = {
   <p>The mapping is exact. <code>Car</code> is the <strong>class</strong> (type). <code>myCar</code> is the <strong>object variable</strong> (name that holds an address). <code>new Car()</code> creates the <strong>object</strong> (the actual value living in memory).</p>
 
   <div class="diagram-card">
-    <svg width="100%" viewBox="0 0 680 310" xmlns="http://www.w3.org/2000/svg">
+    <svg viewBox="0 0 680 310" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <marker id="arr1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
           <path d="M2 1L8 5L2 9" fill="none" stroke="#c0392b" stroke-width="1.5" stroke-linecap="round"/>
@@ -335,7 +397,7 @@ const javaMemoryArticle: Article = {
   <p>This is where actual objects live. Every time you call <code>new Car()</code>, the JVM carves out a fresh chunk of Heap memory, populates it with the object's fields, and returns the address of that chunk. Your object variable (say, <code>myCar</code>) stores this address. It is just a pointer.</p>
 
   <div class="diagram-card">
-    <svg width="100%" viewBox="0 0 680 420" xmlns="http://www.w3.org/2000/svg">
+    <svg viewBox="0 0 680 420" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <marker id="arr2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
           <path d="M2 1L8 5L2 9" fill="none" stroke="#8e44ad" stroke-width="1.5" stroke-linecap="round"/>
@@ -406,11 +468,11 @@ const javaMemoryArticle: Article = {
 
   <p>Now the critical moment: you call <code>new Car()</code>. Here is the exact sequence:</p>
 
-  <ol style="margin: 0 0 1.6em 1.4em; color: var(--ink-mid);">
-    <li style="margin-bottom: 10px;">The JVM allocates a fresh block of memory in the <strong>Heap</strong></li>
-    <li style="margin-bottom: 10px;">It reads the blueprint from the Method Area</li>
-    <li style="margin-bottom: 10px;">It copies the defaults into the new Heap block: <code>color = "green"</code>, <code>size = null</code></li>
-    <li style="margin-bottom: 10px;">It returns the address of this Heap block</li>
+  <ol>
+    <li>The JVM allocates a fresh block of memory in the <strong>Heap</strong></li>
+    <li>It reads the blueprint from the Method Area</li>
+    <li>It copies the defaults into the new Heap block: <code>color = "green"</code>, <code>size = null</code></li>
+    <li>It returns the address of this Heap block</li>
     <li>Your variable (e.g. <code>myCar</code>) stores that address</li>
   </ol>
 
@@ -442,7 +504,7 @@ const javaMemoryArticle: Article = {
     <div class="stepper-body">
       <div class="step-panel active" id="step-0">
         <div class="step-title"><span class="step-num">01</span>Call new Car("large")</div>
-        <p style="color:var(--ink-soft);font-size:17px;margin-bottom:16px">The JVM allocates a fresh block of memory in the Heap. All fields start completely uninitialised.</p>
+        <p style="color:var(--ink-soft);font-size:clamp(14px,2.2vw,17px);margin-bottom:14px">The JVM allocates a fresh block of memory in the Heap. All fields start completely uninitialised.</p>
         <div class="constructor-viz">
           <div class="field-row blueprint"><span class="field-label">color</span><span>= ??? (not set yet)</span><span class="field-source">waiting</span></div>
           <div class="field-row blueprint"><span class="field-label">size</span><span>= ??? (not set yet)</span><span class="field-source">waiting</span></div>
@@ -450,7 +512,7 @@ const javaMemoryArticle: Article = {
       </div>
       <div class="step-panel" id="step-1">
         <div class="step-title"><span class="step-num">02</span>Blueprint defaults applied</div>
-        <p style="color:var(--ink-soft);font-size:17px;margin-bottom:16px">The JVM reads the class blueprint from the Method Area and copies the declared defaults into the new Heap object. The constructor has not run yet.</p>
+        <p style="color:var(--ink-soft);font-size:clamp(14px,2.2vw,17px);margin-bottom:14px">The JVM reads the class blueprint from the Method Area and copies the declared defaults into the new Heap object. The constructor has not run yet.</p>
         <div class="constructor-viz">
           <div class="field-row blueprint"><span class="field-label">color</span><span>= "green"</span><span class="field-source">from blueprint</span></div>
           <div class="field-row blueprint"><span class="field-label">size</span><span>= null</span><span class="field-source">from blueprint</span></div>
@@ -458,7 +520,7 @@ const javaMemoryArticle: Article = {
       </div>
       <div class="step-panel" id="step-2">
         <div class="step-title"><span class="step-num">03</span>Constructor overwrites</div>
-        <p style="color:var(--ink-soft);font-size:17px;margin-bottom:16px">Now the constructor body runs. It overwrites both fields. The initial <code>"green"</code> never survives — it was applied and immediately replaced.</p>
+        <p style="color:var(--ink-soft);font-size:clamp(14px,2.2vw,17px);margin-bottom:14px">Now the constructor body runs. It overwrites both fields. The initial <code>"green"</code> never survives — it was applied and immediately replaced.</p>
         <div class="constructor-viz">
           <div class="field-row overwritten"><span class="field-label">color</span><span>= "red" &nbsp;<span style="text-decoration:line-through;opacity:0.4">"green"</span></span><span class="field-source">overwritten</span></div>
           <div class="field-row overwritten"><span class="field-label">size</span><span>= "large" &nbsp;<span style="text-decoration:line-through;opacity:0.4">null</span></span><span class="field-source">set by constructor</span></div>
@@ -512,7 +574,7 @@ const javaMemoryArticle: Article = {
   <div class="takeaways">
     <h2>Key takeaways</h2>
     <ul>
-      <li>Class = Type, Object variable = Variable name, Object = Value.This analogy maps perfectly for instance-based OOP.</li>
+      <li>Class = Type, Object variable = Variable name, Object = Value. This analogy maps perfectly for instance-based OOP.</li>
       <li>Object variables hold addresses, not objects. Your variable <code>myCar</code> stores a Heap address — not the Car object itself.</li>
       <li>The Method Area holds the blueprint. Field names, default values, method and constructor definitions all live here, written once when the class loads.</li>
       <li>Blueprint defaults are applied first, then the constructor runs. If the constructor sets a field, the inline default is overwritten before you ever see it.</li>

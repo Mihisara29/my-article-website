@@ -110,6 +110,43 @@ const contentVariants: Variants = {
   },
 };
 
+// ─── Hook: viewport width watcher ────────────────────────────────────────────
+
+function useIsMobile(breakpoint = 768) {
+  const [isMobile, setIsMobile] = useState(
+    () => typeof window !== "undefined" && window.innerWidth < breakpoint
+  );
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth < breakpoint);
+    window.addEventListener("resize", handler, { passive: true });
+    return () => window.removeEventListener("resize", handler);
+  }, [breakpoint]);
+  return isMobile;
+}
+
+// ─── Hook: measure actual header height dynamically ──────────────────────────
+
+function useHeaderHeight() {
+  const [headerHeight, setHeaderHeight] = useState(64);
+  useEffect(() => {
+    const measure = () => {
+      // Try to find the header element — adjust the selector if your Header
+      // component uses a different tag or class
+      const header =
+        document.querySelector("header") ||
+        document.querySelector("[data-header]") ||
+        document.querySelector("nav");
+      if (header) {
+        setHeaderHeight(header.getBoundingClientRect().height);
+      }
+    };
+    measure();
+    window.addEventListener("resize", measure, { passive: true });
+    return () => window.removeEventListener("resize", measure);
+  }, []);
+  return headerHeight;
+}
+
 // ─── ArticlePage ──────────────────────────────────────────────────────────────
 
 const ArticlePage = () => {
@@ -117,6 +154,13 @@ const ArticlePage = () => {
   const article = getArticleById(id || "");
   const contentRef = useRef<HTMLDivElement>(null);
   const tocItems = id ? (TOC_MAP[id] ?? []) : [];
+  const isMobile = useIsMobile();
+  const headerHeight = useHeaderHeight();
+
+  // Mobile TOC bar is ~46px tall
+  const mobileTocHeight = 46;
+  // Total offset = header + TOC bar + 16px breathing room
+  const mobileScrollOffset = headerHeight + mobileTocHeight + 16;
 
   // ── Always scroll to top when the article changes ──
   useEffect(() => {
@@ -150,6 +194,8 @@ const ArticlePage = () => {
     );
   }
 
+  const hasToc = tocItems.length > 0;
+
   return (
     <AnimatePresence mode="wait">
       <motion.div
@@ -170,7 +216,7 @@ const ArticlePage = () => {
           initial="hidden"
           animate="visible"
         >
-          <div className="max-w-3xl mx-auto px-6 py-16 md:py-24">
+          <div className="max-w-3xl mx-auto px-4 sm:px-6 py-12 md:py-24">
             <motion.div
               variants={containerVariants}
               initial="hidden"
@@ -180,7 +226,7 @@ const ArticlePage = () => {
               <motion.div variants={itemVariants}>
                 <Link
                   to="/"
-                  className="inline-flex items-center gap-2 mb-8 transition-opacity duration-200 hover:opacity-70"
+                  className="inline-flex items-center gap-2 mb-6 md:mb-8 transition-opacity duration-200 hover:opacity-70"
                   style={{
                     fontFamily: "'JetBrains Mono', monospace",
                     fontSize: "11px",
@@ -197,7 +243,7 @@ const ArticlePage = () => {
               {/* Category badge */}
               <motion.div
                 variants={itemVariants}
-                className="flex items-center gap-3 mb-5"
+                className="flex items-center gap-3 mb-4 md:mb-5"
               >
                 <span
                   style={{
@@ -220,12 +266,12 @@ const ArticlePage = () => {
                 variants={itemVariants}
                 style={{
                   fontFamily: "'Playfair Display', serif",
-                  fontSize: "clamp(28px, 4.5vw, 48px)",
+                  fontSize: "clamp(22px, 5vw, 48px)",
                   fontWeight: 700,
                   color: "#faf8f4",
                   lineHeight: 1.15,
                   letterSpacing: "-0.02em",
-                  marginBottom: "20px",
+                  marginBottom: "16px",
                 }}
               >
                 {article.title}
@@ -236,13 +282,13 @@ const ArticlePage = () => {
                 variants={itemVariants}
                 style={{
                   fontFamily: "'Source Serif 4', serif",
-                  fontSize: "18px",
+                  fontSize: "clamp(14px, 2.5vw, 18px)",
                   fontStyle: "italic",
                   color: "rgba(250,248,244,0.5)",
                   fontWeight: 300,
                   lineHeight: 1.65,
                   maxWidth: "520px",
-                  marginBottom: "32px",
+                  marginBottom: "24px",
                 }}
               >
                 {article.subtitle}
@@ -270,22 +316,37 @@ const ArticlePage = () => {
         {/* Reading progress bar */}
         <ReadingProgress />
 
-        {/* ── Article body + TOC sidebar ── */}
+        {/* ── Mobile TOC: sticky below the header ── */}
+        {hasToc && isMobile && (
+          <MobileToc
+            items={tocItems}
+            scrollOffset={mobileScrollOffset}
+            headerHeight={headerHeight}
+            meta={{
+              category: article.category,
+              readTime: article.readTime,
+              date: article.date,
+            }}
+          />
+        )}
+
+        {/* ── Article body + optional desktop TOC sidebar ── */}
         <motion.main
           className="flex-1"
           variants={contentVariants}
           initial="hidden"
           animate="visible"
         >
-          {/* Outer shell: centres content and positions TOC */}
           <div
             style={{
-              maxWidth: "1100px",
+              maxWidth: hasToc && !isMobile ? "1100px" : "780px",
               margin: "0 auto",
-              padding: "64px 24px 0",
+              padding: isMobile ? "24px 16px 0" : "64px 24px 0",
               display: "grid",
-              gridTemplateColumns: tocItems.length > 0 ? "1fr 220px" : "720px",
-              gridTemplateAreas: tocItems.length > 0 ? '"article toc"' : '"article"',
+              gridTemplateColumns:
+                hasToc && !isMobile ? "1fr 220px" : "1fr",
+              gridTemplateAreas:
+                hasToc && !isMobile ? '"article toc"' : '"article"',
               justifyContent: "center",
               gap: "52px",
               alignItems: "start",
@@ -294,12 +355,12 @@ const ArticlePage = () => {
             {/* Article HTML */}
             <div
               ref={contentRef}
-              style={{ gridArea: "article", minWidth: 0 }}
+              style={{ gridArea: "article", minWidth: 0, overflowX: "hidden" }}
               dangerouslySetInnerHTML={{ __html: article.content }}
             />
 
-            {/* TOC sidebar — only rendered when TOC items exist */}
-            {tocItems.length > 0 && (
+            {/* Desktop-only sticky TOC sidebar */}
+            {hasToc && !isMobile && (
               <TocSidebar
                 items={tocItems}
                 meta={{
@@ -314,7 +375,7 @@ const ArticlePage = () => {
 
         {/* Back link footer */}
         <motion.div
-          className="max-w-[720px] mx-auto px-6 pb-16"
+          className="max-w-[720px] mx-auto px-4 sm:px-6 pb-16 mt-8"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5, delay: 0.7 }}
@@ -342,7 +403,152 @@ const ArticlePage = () => {
   );
 };
 
-// ─── TOC Sidebar ─────────────────────────────────────────────────────────────
+// ─── Mobile TOC — collapsible accordion ──────────────────────────────────────
+
+const MobileToc = ({
+  items,
+  scrollOffset,
+  headerHeight,
+  meta,
+}: {
+  items: TocItem[];
+  scrollOffset: number;
+  headerHeight: number;
+  meta: { category: string; readTime: string; date: string };
+}) => {
+  const [open, setOpen] = useState(false);
+
+  const handleClick = (
+    e: React.MouseEvent<HTMLAnchorElement>,
+    id: string
+  ) => {
+    e.preventDefault();
+    setOpen(false);
+    // Small delay lets drawer close before scrolling
+    setTimeout(() => {
+      const el = document.getElementById(id);
+      if (el) {
+        const top = el.getBoundingClientRect().top + window.scrollY - scrollOffset;
+        window.scrollTo({ top, behavior: "smooth" });
+      }
+    }, 150);
+  };
+
+  return (
+    <div
+      style={{
+        background: "#ffffff",
+        borderBottom: "1px solid #e2ddd6",
+        // Sit exactly below the fixed/sticky header
+        position: "sticky",
+        top: `${headerHeight}px`,
+        zIndex: 40,
+        boxShadow: open ? "0 4px 16px rgba(26,24,20,0.08)" : "none",
+        transition: "box-shadow 0.2s",
+      }}
+    >
+      {/* Toggle button */}
+      <button
+        onClick={() => setOpen((o) => !o)}
+        style={{
+          width: "100%",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: "13px 16px",
+          background: "none",
+          border: "none",
+          cursor: "pointer",
+          fontFamily: "'JetBrains Mono', monospace",
+          fontSize: "11px",
+          letterSpacing: "0.18em",
+          textTransform: "uppercase",
+          color: "#c0392b",
+        }}
+      >
+        <span style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <span
+            style={{
+              width: "14px",
+              height: "1px",
+              background: "#c0392b",
+              display: "inline-block",
+              flexShrink: 0,
+            }}
+          />
+          Contents
+        </span>
+        <span
+          style={{
+            display: "inline-block",
+            transform: open ? "rotate(180deg)" : "rotate(0deg)",
+            transition: "transform 0.22s ease",
+            fontSize: "13px",
+            lineHeight: 1,
+          }}
+        >
+          ▾
+        </span>
+      </button>
+
+      {/* Expandable link list */}
+      {open && (
+        <div style={{ padding: "0 16px 16px" }}>
+          <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+            {items.map(({ id, num, label }) => (
+              <li key={id}>
+                <a
+                  href={`#${id}`}
+                  onClick={(e) => handleClick(e, id)}
+                  style={{
+                    display: "flex",
+                    alignItems: "flex-start",
+                    gap: "10px",
+                    padding: "9px 4px",
+                    borderBottom: "1px solid #f0ece4",
+                    fontFamily: "'Source Serif 4', serif",
+                    fontSize: "14.5px",
+                    fontWeight: 300,
+                    color: "#6b6358",
+                    textDecoration: "none",
+                    lineHeight: 1.45,
+                  }}
+                >
+                  <span
+                    style={{
+                      fontFamily: "'JetBrains Mono', monospace",
+                      fontSize: "10px",
+                      color: "#9c9489",
+                      flexShrink: 0,
+                      marginTop: "4px",
+                    }}
+                  >
+                    {num}
+                  </span>
+                  {label}
+                </a>
+              </li>
+            ))}
+          </ul>
+          <p
+            style={{
+              fontFamily: "'JetBrains Mono', monospace",
+              fontSize: "10px",
+              color: "#c0392b",
+              lineHeight: 1.7,
+              margin: "12px 4px 0",
+              opacity: 0.7,
+            }}
+          >
+            {meta.category} · {meta.readTime} · {meta.date}
+          </p>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ─── TOC Sidebar — desktop only ───────────────────────────────────────────────
 
 const TocSidebar = ({
   items,
@@ -366,7 +572,7 @@ const TocSidebar = ({
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
-    handleScroll(); // run once on mount
+    handleScroll();
     return () => window.removeEventListener("scroll", handleScroll);
   }, [items]);
 
@@ -391,7 +597,6 @@ const TocSidebar = ({
         alignSelf: "start",
       }}
     >
-      {/* TOC box */}
       <div
         style={{
           background: "#ffffff",
