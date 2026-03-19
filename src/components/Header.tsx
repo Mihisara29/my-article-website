@@ -21,7 +21,7 @@ const Header = () => {
       <div className="site-header-inner">
         <Link to="/" className="site-logo">
           <span className="site-logo-mark">A</span>
-          <span className="site-logo-name">Articulate - Induwara</span>
+          <span className="site-logo-name">Articulate</span>
         </Link>
         <nav className="site-nav">
           <Link to="/">Articles</Link>
