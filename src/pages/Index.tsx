@@ -4,10 +4,24 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import FeaturedArticle from "@/components/FeaturedArticle";
 import ArticleCard from "@/components/ArticleCard";
+import { useState, useEffect } from "react";
+
+function useIsMobile(breakpoint = 640) {
+  const [isMobile, setIsMobile] = useState(
+    () => typeof window !== "undefined" && window.innerWidth < breakpoint
+  );
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth < breakpoint);
+    window.addEventListener("resize", handler, { passive: true });
+    return () => window.removeEventListener("resize", handler);
+  }, [breakpoint]);
+  return isMobile;
+}
 
 const Index = () => {
   const featured = articles.find((a) => a.featured);
   const rest = articles.filter((a) => !a.featured);
+  const isMobile = useIsMobile();
 
   return (
     <div
@@ -24,15 +38,27 @@ const Index = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
           className="mb-14"
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr auto",
-            gap: "48px",
-            alignItems: "center",
-          }}
+          style={
+            isMobile
+              ? {
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "flex-start",
+                  gap: "32px",
+                }
+              : {
+                  display: "grid",
+                  gridTemplateColumns: "1fr auto",
+                  gap: "48px",
+                  alignItems: "center",
+                }
+          }
         >
-          {/* Left: kicker + headline only */}
-          <div>
+          {/* On mobile: photo comes first (order 1), text second (order 2) */}
+          {/* On desktop: text is left column, photo is right — DOM order matches */}
+
+          {/* ── Left / bottom: kicker + headline ── */}
+          <div style={{ order: isMobile ? 2 : 1 }}>
             <p
               style={{
                 fontFamily: "'JetBrains Mono', monospace",
@@ -48,7 +74,7 @@ const Index = () => {
             <h1
               style={{
                 fontFamily: "'Playfair Display', serif",
-                fontSize: "clamp(28px, 4vw, 42px)",
+                fontSize: "clamp(26px, 4vw, 42px)",
                 fontWeight: 700,
                 color: "#1a1814",
                 lineHeight: 1.2,
@@ -62,12 +88,19 @@ const Index = () => {
             </h1>
           </div>
 
-          {/* Right: profile photo */}
+          {/* ── Right / top: profile photo ── */}
           <motion.div
             initial={{ opacity: 0, scale: 0.96, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.12, ease: [0.22, 1, 0.36, 1] }}
-            style={{ position: "relative", flexShrink: 0 }}
+            style={{
+              position: "relative",
+              flexShrink: 0,
+              order: isMobile ? 1 : 2,
+              // On mobile, add left margin to make room for the decorative corner accent
+              marginTop: isMobile ? "12px" : 0,
+              marginLeft: isMobile ? "12px" : 0,
+            }}
           >
             {/* Decorative corner accent */}
             <div
@@ -115,8 +148,8 @@ const Index = () => {
             <div
               style={{
                 position: "relative",
-                width: "190px",
-                height: "235px",
+                width: isMobile ? "150px" : "190px",
+                height: isMobile ? "186px" : "235px",
                 borderRadius: "16px 16px 16px 4px",
                 overflow: "hidden",
                 boxShadow:
@@ -203,10 +236,10 @@ const Index = () => {
           </motion.div>
         </motion.div>
 
-        {/* Featured article — untouched */}
+        {/* Featured article */}
         {featured && <FeaturedArticle article={featured} />}
 
-        {/* All articles section — untouched */}
+        {/* All articles section */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}

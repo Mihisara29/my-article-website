@@ -72,6 +72,24 @@ const TOC_MAP: Record<string, TocItem[]> = {
     { id: "s4", num: "04", label: "The Constructor — Overwriting Defaults" },
     { id: "s5", num: "05", label: "Static — Where the Analogy Breaks Down" },
   ],
+  "spring-framework-complete-guide": [
+    { id: "s1",  num: "01", label: "What Is Spring?" },
+    { id: "s2",  num: "02", label: "The Ecosystem" },
+    { id: "s3",  num: "03", label: "Prerequisites" },
+    { id: "s4",  num: "04", label: "Spring vs Spring Boot" },
+    { id: "s5",  num: "05", label: "Inversion of Control" },
+    { id: "s6",  num: "06", label: "Dependency Injection" },
+    { id: "s7",  num: "07", label: "Beans & Container" },
+    { id: "s8",  num: "08", label: "XML Configuration" },
+    { id: "s9",  num: "09", label: "Setter & Constructor DI" },
+    { id: "s10", num: "10", label: "Auto-Wiring" },
+    { id: "s11", num: "11", label: "Bean Scope" },
+    { id: "s12", num: "12", label: "Lazy Initialisation" },
+    { id: "s13", num: "13", label: "Java Config (@Bean)" },
+    { id: "s14", num: "14", label: "Annotation Config" },
+    { id: "s15", num: "15", label: "@Autowired in Depth" },
+    { id: "s16", num: "16", label: "Spring Boot Explained" },
+  ],
 };
 
 // ─── Animation variants ───────────────────────────────────────────────────────
@@ -130,8 +148,6 @@ function useHeaderHeight() {
   const [headerHeight, setHeaderHeight] = useState(64);
   useEffect(() => {
     const measure = () => {
-      // Try to find the header element — adjust the selector if your Header
-      // component uses a different tag or class
       const header =
         document.querySelector("header") ||
         document.querySelector("[data-header]") ||
@@ -196,6 +212,9 @@ const ArticlePage = () => {
 
   const hasToc = tocItems.length > 0;
 
+  // Wide layout for articles with many TOC items (Spring), normal for short ones
+  const isWide = tocItems.length > 5;
+
   return (
     <AnimatePresence mode="wait">
       <motion.div
@@ -216,7 +235,13 @@ const ArticlePage = () => {
           initial="hidden"
           animate="visible"
         >
-          <div className="max-w-3xl mx-auto px-4 sm:px-6 py-12 md:py-24">
+          <div
+            style={{
+              maxWidth: isWide ? "1100px" : "780px",
+              margin: "0 auto",
+              padding: isMobile ? "40px 16px 36px" : "64px 24px 56px",
+            }}
+          >
             <motion.div
               variants={containerVariants}
               initial="hidden"
@@ -266,12 +291,13 @@ const ArticlePage = () => {
                 variants={itemVariants}
                 style={{
                   fontFamily: "'Playfair Display', serif",
-                  fontSize: "clamp(22px, 5vw, 48px)",
+                  fontSize: isMobile ? "clamp(22px, 7vw, 32px)" : "clamp(26px, 4vw, 48px)",
                   fontWeight: 700,
                   color: "#faf8f4",
                   lineHeight: 1.15,
                   letterSpacing: "-0.02em",
                   marginBottom: "16px",
+                  maxWidth: "720px",
                 }}
               >
                 {article.title}
@@ -287,7 +313,7 @@ const ArticlePage = () => {
                   color: "rgba(250,248,244,0.5)",
                   fontWeight: 300,
                   lineHeight: 1.65,
-                  maxWidth: "520px",
+                  maxWidth: "560px",
                   marginBottom: "24px",
                 }}
               >
@@ -339,16 +365,20 @@ const ArticlePage = () => {
         >
           <div
             style={{
-              maxWidth: hasToc && !isMobile ? "1100px" : "780px",
+              maxWidth: hasToc && !isMobile ? (isWide ? "1280px" : "1100px") : "780px",
               margin: "0 auto",
-              padding: isMobile ? "24px 16px 0" : "64px 24px 0",
+              padding: isMobile ? "24px 16px 0" : "64px 32px 0",
               display: "grid",
               gridTemplateColumns:
-                hasToc && !isMobile ? "1fr 220px" : "1fr",
+                hasToc && !isMobile
+                  ? isWide
+                    ? "1fr 230px"
+                    : "1fr 220px"
+                  : "1fr",
               gridTemplateAreas:
                 hasToc && !isMobile ? '"article toc"' : '"article"',
               justifyContent: "center",
-              gap: "52px",
+              gap: hasToc && !isMobile ? "60px" : "0",
               alignItems: "start",
             }}
           >
@@ -375,7 +405,12 @@ const ArticlePage = () => {
 
         {/* Back link footer */}
         <motion.div
-          className="max-w-[720px] mx-auto px-4 sm:px-6 pb-16 mt-8"
+          style={{
+            maxWidth: isWide ? "1280px" : "780px",
+            margin: "0 auto",
+            padding: isMobile ? "24px 16px 48px" : "32px 32px 64px",
+            width: "100%",
+          }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5, delay: 0.7 }}
@@ -424,7 +459,6 @@ const MobileToc = ({
   ) => {
     e.preventDefault();
     setOpen(false);
-    // Small delay lets drawer close before scrolling
     setTimeout(() => {
       const el = document.getElementById(id);
       if (el) {
@@ -439,7 +473,6 @@ const MobileToc = ({
       style={{
         background: "#ffffff",
         borderBottom: "1px solid #e2ddd6",
-        // Sit exactly below the fixed/sticky header
         position: "sticky",
         top: `${headerHeight}px`,
         zIndex: 40,
@@ -493,7 +526,13 @@ const MobileToc = ({
 
       {/* Expandable link list */}
       {open && (
-        <div style={{ padding: "0 16px 16px" }}>
+        <div
+          style={{
+            padding: "0 16px 16px",
+            maxHeight: "60vh",
+            overflowY: "auto",
+          }}
+        >
           <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
             {items.map(({ id, num, label }) => (
               <li key={id}>
@@ -595,6 +634,8 @@ const TocSidebar = ({
         position: "sticky",
         top: "90px",
         alignSelf: "start",
+        maxHeight: "calc(100vh - 110px)",
+        overflowY: "auto",
       }}
     >
       <div
@@ -657,7 +698,8 @@ const TocSidebar = ({
                     background: isActive
                       ? "rgba(192,57,43,0.05)"
                       : "transparent",
-                    transition: "color 0.2s, border-color 0.2s, background 0.2s",
+                    transition:
+                      "color 0.2s, border-color 0.2s, background 0.2s",
                   }}
                 >
                   <span
