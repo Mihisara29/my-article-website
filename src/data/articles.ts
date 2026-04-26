@@ -624,7 +624,7 @@ const springFrameWorkArticle: Article = {
   subtitle:
     "Everything from IoC and dependency injection to beans, scopes, all three configuration styles, auto-wiring, and Spring Boot — explained clearly for beginners",
   category: "Spring · Complete Guide",
-  date: "March 20, 2026",
+  date: "April 26, 2026",
   readTime: "25 min read",
   excerpt:
     "Spring Framework is the backbone of enterprise Java. This guide walks you through IoC, dependency injection, beans, scopes, XML/Java/annotation configuration, and Spring Boot — from first principles.",
